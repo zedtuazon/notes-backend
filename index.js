@@ -3,11 +3,17 @@ import cors from "cors";
 import OpenAI from "openai";
 
 const app = express();
-app.use(cors()); // Allow requests from any origin
+app.use(cors()); // allow requests from any frontend
 app.use(express.json());
 
+// Initialize OpenAI client
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
+});
+
+// Health check endpoint
+app.get("/", (req, res) => {
+  res.send("notes-backend is running.");
 });
 
 // Endpoint: Correct Setup Summary
@@ -19,6 +25,9 @@ app.post("/summary", async (req, res) => {
       return res.status(400).json({ error: "No text provided" });
     }
 
+    console.log("Received text for summary:", text);
+
+    // Call OpenAI API
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -37,12 +46,19 @@ Do NOT add new information.
       ]
     });
 
+    // Log OpenAI response for debugging
+    console.log("OpenAI response:", response.choices[0].message.content);
+
+    // Return cleaned text
     res.json({ cleaned: response.choices[0].message.content });
   } catch (err) {
     console.error("Error in /summary:", err);
-    res.status(500).json({ error: "Failed to process text" });
+
+    // Detailed error for logs, generic message for frontend
+    res.status(500).json({ error: "Failed to process text. Check backend logs." });
   }
 });
 
+// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`notes-backend running on port ${PORT}`));
