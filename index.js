@@ -3,13 +3,14 @@ import cors from "cors";
 import OpenAI from "openai";
 
 const app = express();
-app.use(cors());
+app.use(cors()); // Allow requests from any origin
 app.use(express.json());
 
-// Initialize OpenAI with API key from environment variable
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
-// Endpoint: Correct Setup Summary grammar & convert to bullet points
+// Endpoint: Correct Setup Summary
 app.post("/summary", async (req, res) => {
   try {
     const { text } = req.body;
@@ -32,17 +33,11 @@ Rewrite the text using:
 Do NOT add new information.
 `
         },
-        {
-          role: "user",
-          content: text
-        }
+        { role: "user", content: text }
       ]
     });
 
-    res.json({
-      cleaned: response.choices[0].message.content
-    });
-
+    res.json({ cleaned: response.choices[0].message.content });
   } catch (err) {
     console.error("Error in /summary:", err);
     res.status(500).json({ error: "Failed to process text" });
@@ -50,5 +45,4 @@ Do NOT add new information.
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
-
+app.listen(PORT, () => console.log(`notes-backend running on port ${PORT}`));
